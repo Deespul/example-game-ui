@@ -10,22 +10,24 @@
     $(document).ready(() => {
       let nameWasAdded = false
       let playerName = ''
-      let loggedInPlayer = localStorage.getItem("player")
+      let loggedInPlayer = JSON.parse(localStorage.getItem("player"))
 
       if (loggedInPlayer) {
         $("#search-button").show()
         $("#player-name-edit").hide()
+        $("#player-name").text(`logged in as: ${loggedInPlayer.externalPlayerId}`)
       }
 
       $("#create-player").click(() => {
         nameWasAdded = true
-        playerName =  $("#name-input").text()
+        playerName =  $("#name-input").val()
 
-        axios.post('https://simon-guesbook-backend.herokuapp.com/greetings', {
+        axios.post('https://matchbox.test.w3champions.com/players?api_key=secret', {
           externalPlayerId: playerName
         }).then((r => {
           loggedInPlayer = r.data
-          localStorage.setItem("player", loggedInPlayer)
+          localStorage.setItem("player", JSON.stringify(loggedInPlayer))
+          $("#player-name").text(`logged in as: ${loggedInPlayer.externalPlayerId}`)
           $("#search-button").show()
           $("#player-name-edit").hide()
         }))
@@ -49,7 +51,8 @@
           connection.invoke(
             'Enqueue',
             {
-              queueId: "123",
+              queueId: '608880cd89ddfe00079a7b56',
+              playerIds: [{playerId: loggedInPlayer.playerId}]
             },
           );
         })
@@ -60,6 +63,8 @@
     </script>
 </head>
 <body>
+<div id="player-name">
+</div>
 <button id="search-button" hidden>
     Search Game
 </button>
