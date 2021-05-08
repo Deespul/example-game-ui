@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  example-game-ui:
+    image: deespul/example-game-ui:${TAG}
+    container_name: matchbox-example-game-ui
+    restart: always
+    expose:
+      - 80
+    environment:
+      - VIRTUAL_HOST=demo.w3champions.com
+      - LETSENCRYPT_HOST=demo.w3champions.com
+      - LETSENCRYPT_EMAIL=simonheiss87@gmail.com
+
+networks:
+  default:
+    external:
+      name: nginx-proxy

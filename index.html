@@ -33,8 +33,8 @@
         }))
       })
 
-      // const hub = "ws://localhost:5000'
-      const hub = 'http://localhost:5000'
+      const hub = 'https://matchbox.example.backend.w3champions.com'
+      // const hub = 'http://localhost:5000'
 
       const connection = new signalR.HubConnectionBuilder()
         .withUrl(`${hub}/gamehub`)
@@ -51,7 +51,7 @@
           connection.invoke(
             'Enqueue',
             {
-              queueId: '608880cd89ddfe00079a7b56',
+              queueId: '60968c43e98195000717caa0',
               playerIds: [{playerId: loggedInPlayer.playerId}]
             },
           );

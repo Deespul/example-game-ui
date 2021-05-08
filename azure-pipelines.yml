@@ -1,0 +1,36 @@
+name: $(Build.BuildID)
+
+pool:
+  vmImage: 'ubuntu-20.04'
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+steps:
+
+- task: Docker@2
+  displayName: 'build and push to deespul Repo'
+  inputs:
+    containerRegistry: 'DockerHub'
+    repository: 'deespul/example-game-ui'
+    command: 'buildAndPush'
+    Dockerfile: '**/Dockerfile'
+    buildContext: '.'
+    tags: |
+      $(Build.BuildId)
+      latest
+
+- task: CopyFiles@2
+  inputs:
+    Contents: '**/*docker-compose.yml'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    OverWrite: true
+    flattenFolders: true
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
