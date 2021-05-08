@@ -58,12 +58,15 @@
       })
 
       connection.on('Enqueued', () => {
+        console.log('enqueued')
         $("#create-player").disable()
       });
       connection.on('EnqueueFailed', () => {
+        console.log('enqueue failed')
         $("#create-player").enable()
       })
       connection.on('MatchFound', () => {
+        console.log('match found')
         $("#create-player").hide()
       });
       connection.on('LoggedIn', (res) => {
