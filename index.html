@@ -7,6 +7,13 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.7/signalr.min.js"></script>
     <script>
+      function addPlayerToList(p) {
+        const playerSlot = $('<div>')
+        playerSlot.text(`${p.externalPlayerId}`)
+        playerSlot.attr("id", p.playerId)
+        $('#online-players').append(playerSlot)
+      }
+
     $(document).ready(() => {
       let nameWasAdded = false
       let playerName = ''
@@ -21,6 +28,7 @@
       $("#create-player").click(() => {
         nameWasAdded = true
         playerName =  $("#name-input").val()
+        $("#create-player").disabled = true
 
         axios.post('https://matchbox.test.w3champions.com/players?api_key=secret', {
           externalPlayerId: playerName
@@ -30,21 +38,39 @@
           $("#player-name").text(`logged in as: ${loggedInPlayer.externalPlayerId}`)
           $("#search-button").show()
           $("#player-name-edit").hide()
+          connection.invoke(
+            'LoginAs',
+            loggedInPlayer,
+          );
         }))
       })
 
-      const hub = 'https://matchbox.example.backend.w3champions.com'
-      // const hub = 'http://localhost:5000'
+      // const hub = 'https://matchbox.example.backend.w3champions.com'
+      const hub = 'http://localhost:5000'
 
       const connection = new signalR.HubConnectionBuilder()
         .withUrl(`${hub}/gamehub`)
         .build();
 
-      connection.on('PlayerEntered', (player) => console.log(player));
-      connection.on('PlayerLeft', (player) => console.log(player));
-      connection.on('Enqueued', () => console.log("enuququ"));
-      connection.on('EnqueueFailed', () => console.log("failed"));
-      connection.on('MatchFound', () => console.log("match"));
+      connection.on('PlayerEntered', (player) => addPlayerToList(player));
+      connection.on('PlayerLeft', (player) => {
+        $(`#${player.playerId}`).remove()
+      })
+
+      connection.on('Enqueued', () => {
+        $("#create-player").disable()
+      });
+      connection.on('EnqueueFailed', () => {
+        $("#create-player").enable()
+      })
+      connection.on('MatchFound', () => {
+        $("#create-player").hide()
+      });
+      connection.on('LoggedIn', (res) => {
+        res.onlinePlayers.forEach(p => {
+          addPlayerToList(p);
+        })
+      });
 
       connection.start().then(() => {
         $("#search-button").click(() => {
@@ -56,6 +82,13 @@
             },
           );
         })
+
+        if (loggedInPlayer) {
+          connection.invoke(
+            'LoginAs',
+            loggedInPlayer,
+          );
+        }
       })
     })
 
@@ -68,6 +101,10 @@
 <button id="search-button" hidden>
     Search Game
 </button>
+<div>
+    <div>Players online</div>
+    <div id="online-players"></div>
+</div>
 <div id="player-name-edit">
     <label for="name-input">Enter your name:</label>
     <input type="text" id="name-input">
