@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Clickbait</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.7/signalr.min.js"></script>
+    <script>
+    $(document).ready(() => {
+      let nameWasAdded = false
+      let playerName = ''
+      let loggedInPlayer = localStorage.getItem("player")
+
+      if (loggedInPlayer) {
+        $("#search-button").show()
+        $("#player-name-edit").hide()
+      }
+
+      $("#create-player").click(() => {
+        nameWasAdded = true
+        playerName =  $("#name-input").text()
+
+        axios.post('https://simon-guesbook-backend.herokuapp.com/greetings', {
+          externalPlayerId: playerName
+        }).then((r => {
+          loggedInPlayer = r.data
+          localStorage.setItem("player", loggedInPlayer)
+          $("#search-button").show()
+          $("#player-name-edit").hide()
+        }))
+      })
+
+      // const hub = "ws://localhost:5000'
+      const hub = 'http://localhost:5000'
+
+      const connection = new signalR.HubConnectionBuilder()
+        .withUrl(`${hub}/gamehub`)
+        .build();
+
+      connection.on('PlayerEntered', (player) => console.log(player));
+      connection.on('PlayerLeft', (player) => console.log(player));
+      connection.on('Enqueued', () => console.log("enuququ"));
+      connection.on('EnqueueFailed', () => console.log("failed"));
+      connection.on('MatchFound', () => console.log("match"));
+
+      connection.start().then(() => {
+        $("#search-button").click(() => {
+          connection.invoke(
+            'Enqueue',
+            {
+              queueId: "123",
+            },
+          );
+        })
+      })
+    })
+
+    let nameWasAdded = false
+    </script>
+</head>
+<body>
+<button id="search-button" hidden>
+    Search Game
+</button>
+<div id="player-name-edit">
+    <label for="name-input">Enter your name:</label>
+    <input type="text" id="name-input">
+    <button id="create-player">
+        Save Name
+    </button>
+</div>
+
+</body>
+</html>
