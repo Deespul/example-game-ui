@@ -11,6 +11,7 @@
       const playerSlot = $('<div>')
       playerSlot.text(`${p.externalPlayerId}`)
       playerSlot.attr("id", p.playerId)
+      playerSlot.addClass('player-list-item')
       $('#online-players').append(playerSlot)
     }
 
@@ -77,8 +78,6 @@
         }
       })
 
-      let nameWasAdded = false
-      let playerName = ''
 
       axios.get('https://matchbox.test.w3champions.com/players?api_key=secret')
         .then((r => {
@@ -87,9 +86,8 @@
             const playerSlot = $('<div>')
             playerSlot.text(`${p.externalPlayerId}`)
             playerSlot.attr("id", p.playerId)
+            playerSlot.addClass('player-list-item')
             playerSlot.click((e) => {
-              nameWasAdded = true
-              playerName =  $("#name-input").val()
               $("#create-player").disabled = true
 
               loggedInPlayer = {
@@ -105,16 +103,49 @@
       }))
     })
   </script>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      font-family: Tahoma, sans-serif;
+      text-align: center;
+    }
+
+    #game {
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    #search-button {
+      border-radius: 4px;
+      padding: 10px 20px 10px 20px;
+      border: 1px solid darkgray;
+      background-color: lightgray;
+      margin: 20px;
+    }
+
+    .player-list-item {
+      border-top: 1px solid darkgray;
+      padding: 10px 20px 10px 20px;
+    }
+
+    .player-list-item:nth-child(1) {
+      border-top: none;
+      margin-top: 20px;
+    }
+
+  </style>
 </head>
 <body>
-<div id="player-name">
-</div>
 <div id="game" hidden>
-  <button id="search-button">
+  <div id="player-name">
+  </div>
+  <div id="search-button">
     Search Game
-  </button>
+  </div>
   <div>
-    <div>Players online</div>
+    <div>Players online:</div>
     <div id="online-players"></div>
   </div>
 </div>
