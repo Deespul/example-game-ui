@@ -14,36 +14,19 @@
       $('#online-players').append(playerSlot)
     }
 
+    function logInPlayer(loggedInPlayer) {
+      $("#game").show()
+      $("#player-select-list").remove()
+      $("#player-name").text(`logged in as: ${loggedInPlayer.externalPlayerId}`)
+    }
+
     $(document).ready(() => {
-      let nameWasAdded = false
-      let playerName = ''
       let loggedInPlayer = JSON.parse(localStorage.getItem("player"))
+      let players = []
 
       if (loggedInPlayer) {
-        $("#search-button").show()
-        $("#player-name-edit").hide()
-        $("#player-name").text(`logged in as: ${loggedInPlayer.externalPlayerId}`)
+        logInPlayer(loggedInPlayer);
       }
-
-      $("#create-player").click(() => {
-        nameWasAdded = true
-        playerName =  $("#name-input").val()
-        $("#create-player").disabled = true
-
-        axios.post('https://matchbox.test.w3champions.com/players?api_key=secret', {
-          externalPlayerId: playerName
-        }).then((r => {
-          loggedInPlayer = r.data
-          localStorage.setItem("player", JSON.stringify(loggedInPlayer))
-          $("#player-name").text(`logged in as: ${loggedInPlayer.externalPlayerId} (${loggedInPlayer.playerId})`)
-          $("#search-button").show()
-          $("#player-name-edit").hide()
-          connection.invoke(
-            'LoginAs',
-            loggedInPlayer,
-          );
-        }))
-      })
 
       const hub = 'https://matchbox.example.backend.w3champions.com'
       // const hub = 'http://localhost:5000'
@@ -93,25 +76,50 @@
           );
         }
       })
+
+      let nameWasAdded = false
+      let playerName = ''
+
+      axios.get('https://matchbox.test.w3champions.com/players?api_key=secret')
+        .then((r => {
+          players = r.data
+          players.forEach(p => {
+            const playerSlot = $('<div>')
+            playerSlot.text(`${p.externalPlayerId}`)
+            playerSlot.attr("id", p.playerId)
+            playerSlot.click((e) => {
+              nameWasAdded = true
+              playerName =  $("#name-input").val()
+              $("#create-player").disabled = true
+
+              loggedInPlayer = {
+                playerId: e.target.id,
+                externalPlayerId: e.target.innerText,
+              }
+              localStorage.setItem("player", JSON.stringify(loggedInPlayer))
+              logInPlayer(p)
+              connection.invoke('LoginAs', loggedInPlayer)
+            })
+            $('#player-select-list').append(playerSlot)
+          })
+      }))
     })
   </script>
 </head>
 <body>
 <div id="player-name">
 </div>
-<button id="search-button" hidden>
-  Search Game
-</button>
-<div>
-  <div>Players online</div>
-  <div id="online-players"></div>
-</div>
-<div id="player-name-edit">
-  <label for="name-input">Enter your name:</label>
-  <input type="text" id="name-input">
-  <button id="create-player">
-    Save Name
+<div id="game" hidden>
+  <button id="search-button">
+    Search Game
   </button>
+  <div>
+    <div>Players online</div>
+    <div id="online-players"></div>
+  </div>
+</div>
+<div id="player-select-list">
+  <div>Select Player</div>
 </div>
 
 </body>
