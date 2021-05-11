@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Clickbait</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.7/signalr.min.js"></script>
-    <script>
-      function addPlayerToList(p) {
-        const playerSlot = $('<div>')
-        playerSlot.text(`${p.externalPlayerId}`)
-        playerSlot.attr("id", p.playerId)
-        $('#online-players').append(playerSlot)
-      }
+  <meta charset="UTF-8">
+  <title>Clickbait</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.7/signalr.min.js"></script>
+  <script>
+    function addPlayerToList(p) {
+      const playerSlot = $('<div>')
+      playerSlot.text(`${p.externalPlayerId}`)
+      playerSlot.attr("id", p.playerId)
+      $('#online-players').append(playerSlot)
+    }
 
     $(document).ready(() => {
       let nameWasAdded = false
@@ -35,7 +35,7 @@
         }).then((r => {
           loggedInPlayer = r.data
           localStorage.setItem("player", JSON.stringify(loggedInPlayer))
-          $("#player-name").text(`logged in as: ${loggedInPlayer.externalPlayerId}`)
+          $("#player-name").text(`logged in as: ${loggedInPlayer.externalPlayerId} (${loggedInPlayer.playerId})`)
           $("#search-button").show()
           $("#player-name-edit").hide()
           connection.invoke(
@@ -94,26 +94,24 @@
         }
       })
     })
-
-    let nameWasAdded = false
-    </script>
+  </script>
 </head>
 <body>
 <div id="player-name">
 </div>
 <button id="search-button" hidden>
-    Search Game
+  Search Game
 </button>
 <div>
-    <div>Players online</div>
-    <div id="online-players"></div>
+  <div>Players online</div>
+  <div id="online-players"></div>
 </div>
 <div id="player-name-edit">
-    <label for="name-input">Enter your name:</label>
-    <input type="text" id="name-input">
-    <button id="create-player">
-        Save Name
-    </button>
+  <label for="name-input">Enter your name:</label>
+  <input type="text" id="name-input">
+  <button id="create-player">
+    Save Name
+  </button>
 </div>
 
 </body>
