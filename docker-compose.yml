@@ -7,8 +7,8 @@ services:
     expose:
       - 80
     environment:
-      - VIRTUAL_HOST=matchbox.gg
-      - LETSENCRYPT_HOST=matchbox.gg
+      - VIRTUAL_HOST=demo.matchbox.gg
+      - LETSENCRYPT_HOST=demo.matchbox.gg
       - LETSENCRYPT_EMAIL=simonheiss87@gmail.com
 
 networks:
