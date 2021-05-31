@@ -50,8 +50,9 @@
         console.log('enqueue failed')
         $("#create-player").enable()
       })
-      connection.on('MatchFound', () => {
+      connection.on('MatchFound', (res) => {
         console.log('match found')
+        console.log(res)
         $("#create-player").hide()
       });
       connection.on('LoggedIn', (res) => {
