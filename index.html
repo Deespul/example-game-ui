@@ -8,14 +8,15 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.7/signalr.min.js"></script>
   <script src="./env.js"></script>
   <script>
-    const apiurl = config.API_URL
-    const matchboxurl = config.MATCHBOX_API
-    let clickCounter = 0
-    let gameStart
-
     $(document).ready(() => {
+      const apiurl = config.API_URL
+      const matchboxurl = config.MATCHBOX_API
+      let clickCounter = 0
+      let gameStart
       let loggedInPlayer = JSON.parse(localStorage.getItem("player"))
       let players = []
+      let matchId = ''
+
       const gameFound = $("#game-found");
       const searchField = $("#search-field");
       const searchButton = $("#search-button");
@@ -53,6 +54,8 @@
       })
       connection.on('MatchFound', (res) => {
         console.log('match found')
+        matchId = res.matchId
+
         const player1Slot = $('<div>')
         let team1 = res.teams[0];
         let playerId1 = team1.playerIds[0];
@@ -99,7 +102,7 @@
           moveClickTargetToRandomPlace();
           clickCounter++
 
-          if (clickCounter > 5) {
+          if (clickCounter >= 5) {
             clickCounter = 0;
             clickTarget.hide()
 
@@ -107,7 +110,8 @@
             const diff = gameEnd - gameStart
             waitingForGameEnd.show()
 
-            connection.invoke('ReportGame', diff)
+            connection.invoke('ReportGame', diff, matchId)
+            matchId = ''
           }
         })
 
