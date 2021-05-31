@@ -10,6 +10,8 @@
   <script>
     const apiurl = config.API_URL
     const matchboxurl = config.MATCHBOX_API
+    let clickCounter = 0
+    let gameStart
 
     function addPlayerToList(p) {
       const playerSlot = $('<div>')
@@ -21,8 +23,17 @@
 
     function logInPlayer(loggedInPlayer) {
       $("#game").show()
-      $("#player-select-list").remove()
+      $("#player-select-list").hide()
       $("#player-name").text(`logged in as: ${loggedInPlayer.externalPlayerId}`)
+    }
+
+    function moveClickTargetToRandomPlace() {
+      const width = window.innerWidth - 100
+      const height = window.innerHeight - 60
+      $("#click-target").css({
+        left: Math.random() * width,
+        top:Math.random() * height
+      });
     }
 
     $(document).ready(() => {
@@ -44,13 +55,15 @@
 
       connection.on('Enqueued', () => {
         console.log('enqueued')
+        $("#search-field").show()
       });
       connection.on('EnqueueFailed', () => {
         console.log('enqueue failed')
+        $("#search-button").show()
+        $("#search-field").hide()
       })
       connection.on('MatchFound', (res) => {
-        $("#search-button").hide()
-
+        console.log('match found')
         const player1Slot = $('<div>')
         let team1 = res.teams[0];
         let playerId1 = team1.playerIds[0];
@@ -69,10 +82,13 @@
         $("#game-found").append(player2Slot)
 
         $("#game-found").show()
-
-        console.log('match found')
+        $("#start-game").show()
+        $("#online-player-list").hide()
+        $("#search-field").hide()
       });
       connection.on('LoggedIn', (res) => {
+        $("#logout-button").show()
+        $("#search-button").show()
         res.onlinePlayers.forEach(p => {
           addPlayerToList(p);
         })
@@ -80,6 +96,7 @@
 
       connection.start().then(() => {
         $("#search-button").click(() => {
+          $("#search-button").hide()
           connection.invoke(
             'Enqueue',
             {
@@ -89,6 +106,38 @@
           );
         })
 
+        $("#click-target").click(() => {
+          moveClickTargetToRandomPlace();
+          clickCounter++
+
+          if (clickCounter > 5) {
+            clickCounter = 0;
+            $("#click-target").hide()
+
+            const gameEnd = performance.now()
+            const diff = gameEnd - gameStart
+            $("#waiting-for-game-end").show()
+
+            connection.invoke('ReportGame', diff)
+          }
+        })
+
+        $("#logout-button").click(() => {
+          localStorage.removeItem("player")
+          $("#player-name").text("")
+          $("#logout-button").hide()
+          $("#game").hide()
+          $("#player-select-list").show()
+        })
+
+        $("#start-game").click(() => {
+          $("#start-game").hide()
+          $("#click-target").show()
+          gameStart = performance.now()
+
+          moveClickTargetToRandomPlace();
+        })
+
         if (loggedInPlayer) {
           connection.invoke(
             'LoginAs',
@@ -96,7 +145,6 @@
           );
         }
       })
-
 
       axios.get(`${matchboxurl}/players?api_key=secret`)
         .then((r => {
@@ -124,13 +172,10 @@
   </script>
   <style>
     body {
-      display: flex;
-      justify-content: center;
       font-family: Tahoma, sans-serif;
-      text-align: center;
     }
 
-    #search-button {
+    .primary-button {
       border-radius: 4px;
       padding: 10px 20px 10px 20px;
       border: 1px solid darkgray;
@@ -138,13 +183,25 @@
       margin: 20px;
     }
 
+    #game {
+      width: 100%;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+    }
+
     #game-found {
       margin-top: 20px;
       margin-bottom: 20px;
     }
 
-    #game-found-header{
+    #game-found-header {
       margin-bottom: 10px;
+    }
+
+    #click-target {
+      position: absolute;
+      z-index: 5000;
     }
 
     .player-list-item {
@@ -160,23 +217,37 @@
   </style>
 </head>
 <body>
-<div id="game" hidden>
-  <div id="player-name">
+  <div id="click-target" class="primary-button" hidden>
+    Click me!
   </div>
-  <div id="search-button">
-    Search Game
+  <div id="game" hidden>
+    <div id="player-name">
+    </div>
+    <div id="search-button" class="primary-button" hidden>
+      Search Game
+    </div>
+    <div id="logout-button" class="primary-button" hidden>
+      Logout
+    </div>
+    <div id="start-game" class="primary-button" hidden>
+      Start Game
+    </div>
+    <div id="search-field" hidden>
+      Searching Opponent...
+    </div>
+    <div id="waiting-for-game-end" hidden>
+      Waiting for Opponent...
+    </div>
+    <div id="game-found" hidden>
+      <div id="game-found-header">Found Game:</div>
+    </div>
+    <div id="online-player-list">
+      <div>Players online:</div>
+      <div id="online-players"></div>
+    </div>
   </div>
-  <div id="game-found" hidden>
-    <div id="game-found-header">Found Game:</div>
+  <div id="player-select-list">
+    <div>Select Player</div>
   </div>
-  <div>
-    <div>Players online:</div>
-    <div id="online-players"></div>
-  </div>
-</div>
-<div id="player-select-list">
-  <div>Select Player</div>
-</div>
-
 </body>
 </html>
