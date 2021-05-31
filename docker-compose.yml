@@ -10,6 +10,8 @@ services:
       - VIRTUAL_HOST=demo.matchbox.gg
       - LETSENCRYPT_HOST=demo.matchbox.gg
       - LETSENCRYPT_EMAIL=simonheiss87@gmail.com
+      - API_URL=${API_URL}
+      - MATCHBOX_API=${MATCHBOX_API}
 
 networks:
   default:
