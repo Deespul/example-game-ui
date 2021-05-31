@@ -13,32 +13,21 @@
     let clickCounter = 0
     let gameStart
 
-    function addPlayerToList(p) {
-      const playerSlot = $('<div>')
-      playerSlot.text(`${p.externalPlayerId}`)
-      playerSlot.attr("id", p.playerId)
-      playerSlot.addClass('player-list-item')
-      $('#online-players').append(playerSlot)
-    }
-
-    function logInPlayer(loggedInPlayer) {
-      $("#game").show()
-      $("#player-select-list").hide()
-      $("#player-name").text(`logged in as: ${loggedInPlayer.externalPlayerId}`)
-    }
-
-    function moveClickTargetToRandomPlace() {
-      const width = window.innerWidth - 100
-      const height = window.innerHeight - 60
-      $("#click-target").css({
-        left: Math.random() * width,
-        top:Math.random() * height
-      });
-    }
-
     $(document).ready(() => {
       let loggedInPlayer = JSON.parse(localStorage.getItem("player"))
       let players = []
+      const gameFound = $("#game-found");
+      const searchField = $("#search-field");
+      const searchButton = $("#search-button");
+      const startGame = $("#start-game");
+      const onlinePlayerList = $("#online-player-list");
+      const logoutButton = $("#logout-button");
+      const game = $("#game");
+      const clickTarget = $("#click-target");
+      const waitingForGameEnd = $("#waiting-for-game-end");
+      const playerName = $("#player-name");
+      const playerSelectList = $("#player-select-list");
+      const onlinePlayers = $('#online-players');
 
       if (loggedInPlayer) {
         logInPlayer(loggedInPlayer);
@@ -55,12 +44,12 @@
 
       connection.on('Enqueued', () => {
         console.log('enqueued')
-        $("#search-field").show()
+        searchField.show()
       });
       connection.on('EnqueueFailed', () => {
         console.log('enqueue failed')
-        $("#search-button").show()
-        $("#search-field").hide()
+        searchButton.show()
+        searchField.hide()
       })
       connection.on('MatchFound', (res) => {
         console.log('match found')
@@ -69,34 +58,34 @@
         let playerId1 = team1.playerIds[0];
         const player1 = players.find(p => p.playerId === playerId1)
         player1Slot.text(`${player1.externalPlayerId} (${team1.mmr.rating} MMR)`)
-        $("#game-found").append(player1Slot)
+        gameFound.append(player1Slot)
         const vsSlot = $('<div>')
         vsSlot.text("VS")
-        $("#game-found").append(vsSlot)
+        gameFound.append(vsSlot)
 
         const player2Slot = $('<div>')
         let team2 = res.teams[1];
         let playerId2 = team2.playerIds[0];
         const player2 = players.find(p => p.playerId === playerId2)
         player2Slot.text(`${player2.externalPlayerId} (${team2.mmr.rating} MMR)`)
-        $("#game-found").append(player2Slot)
+        gameFound.append(player2Slot)
 
-        $("#game-found").show()
-        $("#start-game").show()
-        $("#online-player-list").hide()
-        $("#search-field").hide()
+        gameFound.show()
+        startGame.show()
+        onlinePlayerList.hide()
+        searchField.hide()
       });
       connection.on('LoggedIn', (res) => {
-        $("#logout-button").show()
-        $("#search-button").show()
+        logoutButton.show()
+        searchButton.show()
         res.onlinePlayers.forEach(p => {
           addPlayerToList(p);
         })
       });
 
       connection.start().then(() => {
-        $("#search-button").click(() => {
-          $("#search-button").hide()
+        searchButton.click(() => {
+          searchButton.hide()
           connection.invoke(
             'Enqueue',
             {
@@ -106,33 +95,33 @@
           );
         })
 
-        $("#click-target").click(() => {
+        clickTarget.click(() => {
           moveClickTargetToRandomPlace();
           clickCounter++
 
           if (clickCounter > 5) {
             clickCounter = 0;
-            $("#click-target").hide()
+            clickTarget.hide()
 
             const gameEnd = performance.now()
             const diff = gameEnd - gameStart
-            $("#waiting-for-game-end").show()
+            waitingForGameEnd.show()
 
             connection.invoke('ReportGame', diff)
           }
         })
 
-        $("#logout-button").click(() => {
+        logoutButton.click(() => {
           localStorage.removeItem("player")
-          $("#player-name").text("")
-          $("#logout-button").hide()
-          $("#game").hide()
-          $("#player-select-list").show()
+          playerName.text("")
+          logoutButton.hide()
+          game.hide()
+          playerSelectList.show()
         })
 
-        $("#start-game").click(() => {
-          $("#start-game").hide()
-          $("#click-target").show()
+        startGame.click(() => {
+          startGame.hide()
+          clickTarget.show()
           gameStart = performance.now()
 
           moveClickTargetToRandomPlace();
@@ -155,8 +144,6 @@
             playerSlot.attr("id", p.playerId)
             playerSlot.addClass('player-list-item')
             playerSlot.click((e) => {
-              $("#create-player").disabled = true
-
               loggedInPlayer = {
                 playerId: e.target.id,
                 externalPlayerId: e.target.innerText,
@@ -165,9 +152,32 @@
               logInPlayer(p)
               connection.invoke('LoginAs', loggedInPlayer)
             })
-            $('#player-select-list').append(playerSlot)
+            playerSelectList.append(playerSlot)
           })
       }))
+
+      function addPlayerToList(p) {
+        const playerSlot = $('<div>')
+        playerSlot.text(`${p.externalPlayerId}`)
+        playerSlot.attr("id", p.playerId)
+        playerSlot.addClass('player-list-item')
+        onlinePlayers.append(playerSlot)
+      }
+
+      function logInPlayer(loggedInPlayer) {
+        game.show()
+        playerSelectList.hide()
+        playerName.text(`logged in as: ${loggedInPlayer.externalPlayerId}`)
+      }
+
+      function moveClickTargetToRandomPlace() {
+        const width = window.innerWidth - 100
+        const height = window.innerHeight - 60
+        clickTarget.css({
+          left: Math.random() * width,
+          top:Math.random() * height
+        });
+      }
     })
   </script>
   <style>
