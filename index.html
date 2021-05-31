@@ -44,16 +44,12 @@
 
       connection.on('Enqueued', () => {
         console.log('enqueued')
-        $("#create-player").disable()
       });
       connection.on('EnqueueFailed', () => {
         console.log('enqueue failed')
-        $("#create-player").enable()
       })
       connection.on('MatchFound', (res) => {
         console.log('match found')
-        console.log(res)
-        $("#create-player").hide()
       });
       connection.on('LoggedIn', (res) => {
         res.onlinePlayers.forEach(p => {
