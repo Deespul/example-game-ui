@@ -49,6 +49,27 @@
         console.log('enqueue failed')
       })
       connection.on('MatchFound', (res) => {
+        $("#search-button").hide()
+
+        const player1Slot = $('<div>')
+        let team1 = res.teams[0];
+        let playerId1 = team1.playerIds[0];
+        const player1 = players.find(p => p.playerId === playerId1)
+        player1Slot.text(`${player1.externalPlayerId} (${team1.mmr.rating} MMR)`)
+        $("#game-found").append(player1Slot)
+        const vsSlot = $('<div>')
+        vsSlot.text("VS")
+        $("#game-found").append(vsSlot)
+
+        const player2Slot = $('<div>')
+        let team2 = res.teams[1];
+        let playerId2 = team2.playerIds[0];
+        const player2 = players.find(p => p.playerId === playerId2)
+        player2Slot.text(`${player2.externalPlayerId} (${team2.mmr.rating} MMR)`)
+        $("#game-found").append(player2Slot)
+
+        $("#game-found").show()
+
         console.log('match found')
       });
       connection.on('LoggedIn', (res) => {
@@ -117,6 +138,15 @@
       margin: 20px;
     }
 
+    #game-found {
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+
+    #game-found-header{
+      margin-bottom: 10px;
+    }
+
     .player-list-item {
       border-top: 1px solid darkgray;
       padding: 10px 20px 10px 20px;
@@ -135,6 +165,9 @@
   </div>
   <div id="search-button">
     Search Game
+  </div>
+  <div id="game-found" hidden>
+    <div id="game-found-header">Found Game:</div>
   </div>
   <div>
     <div>Players online:</div>
