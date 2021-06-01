@@ -21,7 +21,7 @@
       const gameFound = $("#game-found");
       const searchField = $("#search-field");
       const searchButton = $("#search-button");
-      const startGame = $("#start-game");
+      const startGameButton = $("#start-game");
       const onlinePlayerList = $("#online-player-list");
       const game = $("#game");
       const clickTarget = $("#click-target");
@@ -30,6 +30,7 @@
       const playerSelectList = $("#player-select-list");
       const onlinePlayers = $('#online-players');
       const queueSelectList = $('#queue-select-list');
+      const gameResult = $('#game-result');
 
       const connection = new signalR.HubConnectionBuilder()
         .withUrl(`${apiurl}/gamehub`)
@@ -39,6 +40,40 @@
       connection.on('PlayerLeft', (player) => {
         $(`#${player.playerId}`).remove()
       })
+
+      connection.on('MatchFinished', (result) => {
+        console.log('match finished')
+        searchButton.show()
+        gameResult.empty();
+
+        const vsSlot = $('<div>')
+        vsSlot.text("Game Result:")
+        gameResult.append(vsSlot)
+
+        const winnerDiv = $('<div>')
+        const winnerTeam = result.teamsAfterMmrUpdate.find(t => t.playerIds[0] === result.winner)
+        const winnerPlayer = players.find(p => p.playerId === winnerTeam.playerIds[0])
+        winnerDiv.text(`Winner: ${winnerPlayer.externalPlayerId} (${winnerTeam.mmr.rating} MMR)`)
+        gameResult.append(winnerDiv)
+
+        const looserDiv = $('<div>')
+        const looserTeam = result.teamsAfterMmrUpdate.find(t => t.playerIds[0] !== result.winner)
+        const looserPlayer = players.find(p => p.playerId === looserTeam.playerIds[0])
+        looserDiv.text(`Looser: ${looserPlayer.externalPlayerId} (${looserTeam.mmr.rating} MMR)`)
+        gameResult.append(looserDiv)
+        gameResult.show()
+      });
+
+      connection.on('PartialResultReported', () => {
+        console.log('match partially reported')
+        waitingForGameEnd.show()
+      });
+
+      connection.on('MatchReportFailed', () => {
+        console.log('match report failed')
+        searchButton.show()
+        startGameButton.hide()
+      });
 
       connection.on('Enqueued', () => {
         console.log('enqueued')
@@ -71,7 +106,7 @@
         gameFound.append(player2Slot)
 
         gameFound.show()
-        startGame.show()
+        startGameButton.show()
         onlinePlayerList.hide()
         searchField.hide()
       });
@@ -85,6 +120,8 @@
       connection.start().then(() => {
         searchButton.click(() => {
           searchButton.hide()
+          gameResult.hide()
+
           connection.invoke(
             'Enqueue',
             {
@@ -98,21 +135,22 @@
           moveClickTargetToRandomPlace();
           clickCounter++
 
-          if (clickCounter >= 5) {
+          if (clickCounter >= 1) {
             clickCounter = 0;
             clickTarget.hide()
 
             const gameEnd = performance.now()
             const diff = gameEnd - gameStart
-            waitingForGameEnd.show()
 
             connection.invoke('ReportGame', diff, matchId)
             matchId = ''
           }
         })
 
-        startGame.click(() => {
-          startGame.hide()
+        startGameButton.click(() => {
+          startGameButton.hide()
+          gameFound.empty()
+          gameFound.hide()
           clickTarget.show()
           gameStart = performance.now()
 
@@ -243,6 +281,8 @@
     </div>
     <div id="start-game" class="primary-button" hidden>
       Start Game
+    </div>
+    <div id="game-result" hidden>
     </div>
     <div id="search-field" hidden>
       Searching Opponent...
