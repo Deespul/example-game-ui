@@ -7,8 +7,8 @@ services:
     expose:
       - 80
     environment:
-      - VIRTUAL_HOST=demo.matchbox.gg,led51.de,rofl.led51.de
-      - LETSENCRYPT_HOST=demo.matchbox.gg,led51.de,rofl.led51.de
+      - VIRTUAL_HOST=demo.matchbox.gg
+      - LETSENCRYPT_HOST=demo.matchbox.gg
       - LETSENCRYPT_EMAIL=simonheiss87@gmail.com
       - API_URL=${API_URL}
       - MATCHBOX_API=${MATCHBOX_API}
