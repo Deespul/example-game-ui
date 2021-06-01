@@ -26,7 +26,6 @@
       const game = $("#game");
       const clickTarget = $("#click-target");
       const waitingForGameEnd = $("#waiting-for-game-end");
-      const playerName = $("#player-name");
       const playerSelectList = $("#player-select-list");
       const onlinePlayers = $('#online-players');
       const queueSelectList = $('#queue-select-list');
@@ -45,6 +44,8 @@
         console.log('match finished')
         searchButton.show()
         gameResult.empty();
+        onlinePlayerList.show();
+        waitingForGameEnd.hide()
 
         const vsSlot = $('<div>')
         vsSlot.text("Game Result:")
@@ -53,13 +54,13 @@
         const winnerDiv = $('<div>')
         const winnerTeam = result.teamsAfterMmrUpdate.find(t => t.playerIds[0] === result.winner)
         const winnerPlayer = players.find(p => p.playerId === winnerTeam.playerIds[0])
-        winnerDiv.text(`Winner: ${winnerPlayer.externalPlayerId} (${winnerTeam.mmr.rating} MMR)`)
+        winnerDiv.text(`Winner: ${winnerPlayer.externalPlayerId} (${Math.round(winnerTeam.mmr.rating)} MMR)`)
         gameResult.append(winnerDiv)
 
         const looserDiv = $('<div>')
         const looserTeam = result.teamsAfterMmrUpdate.find(t => t.playerIds[0] !== result.winner)
         const looserPlayer = players.find(p => p.playerId === looserTeam.playerIds[0])
-        looserDiv.text(`Looser: ${looserPlayer.externalPlayerId} (${looserTeam.mmr.rating} MMR)`)
+        looserDiv.text(`Looser: ${looserPlayer.externalPlayerId} (${Math.round(looserTeam.mmr.rating)} MMR)`)
         gameResult.append(looserDiv)
         gameResult.show()
       });
@@ -92,7 +93,7 @@
         let team1 = res.teams[0];
         let playerId1 = team1.playerIds[0];
         const player1 = players.find(p => p.playerId === playerId1)
-        player1Slot.text(`${player1.externalPlayerId} (${team1.mmr.rating} MMR)`)
+        player1Slot.text(`${player1.externalPlayerId} (${Math.round(team1.mmr.rating)} MMR)`)
         gameFound.append(player1Slot)
         const vsSlot = $('<div>')
         vsSlot.text("VS")
@@ -102,7 +103,7 @@
         let team2 = res.teams[1];
         let playerId2 = team2.playerIds[0];
         const player2 = players.find(p => p.playerId === playerId2)
-        player2Slot.text(`${player2.externalPlayerId} (${team2.mmr.rating} MMR)`)
+        player2Slot.text(`${player2.externalPlayerId} (${Math.round(team2.mmr.rating)} MMR)`)
         gameFound.append(player2Slot)
 
         gameFound.show()
@@ -121,6 +122,8 @@
         searchButton.click(() => {
           searchButton.hide()
           gameResult.hide()
+          waitingForGameEnd.hide()
+          onlinePlayerList.hide()
 
           connection.invoke(
             'Enqueue',
@@ -206,11 +209,10 @@
         onlinePlayers.append(playerSlot)
       }
 
-      function logInPlayer(loggedInPlayer) {
+      function logInPlayer() {
         game.show()
         playerSelectList.hide()
         onlinePlayerList.show()
-        playerName.text(`logged in as: ${loggedInPlayer.externalPlayerId}`)
       }
 
       function moveClickTargetToRandomPlace() {
@@ -274,7 +276,6 @@
     Click me!
   </div>
   <div id="game" hidden>
-    <div id="player-name">
     </div>
     <div id="search-button" class="primary-button" hidden>
       Search Game
