@@ -13,7 +13,8 @@
       const matchboxurl = config.MATCHBOX_API
       let clickCounter = 0
       let gameStart
-      let loggedInPlayer = JSON.parse(localStorage.getItem("player"))
+      let loggedInPlayer = null
+      let usedQueue = null
       let players = []
       let matchId = ''
 
@@ -22,17 +23,13 @@
       const searchButton = $("#search-button");
       const startGame = $("#start-game");
       const onlinePlayerList = $("#online-player-list");
-      const logoutButton = $("#logout-button");
       const game = $("#game");
       const clickTarget = $("#click-target");
       const waitingForGameEnd = $("#waiting-for-game-end");
       const playerName = $("#player-name");
       const playerSelectList = $("#player-select-list");
       const onlinePlayers = $('#online-players');
-
-      if (loggedInPlayer) {
-        logInPlayer(loggedInPlayer);
-      }
+      const queueSelectList = $('#queue-select-list');
 
       const connection = new signalR.HubConnectionBuilder()
         .withUrl(`${apiurl}/gamehub`)
@@ -79,7 +76,6 @@
         searchField.hide()
       });
       connection.on('LoggedIn', (res) => {
-        logoutButton.show()
         searchButton.show()
         res.onlinePlayers.forEach(p => {
           addPlayerToList(p);
@@ -92,7 +88,7 @@
           connection.invoke(
             'Enqueue',
             {
-              queueId: '60968c43e98195000717caa0',
+              queueId: usedQueue.queueId,
               playerIds: [{playerId: loggedInPlayer.playerId}]
             },
           );
@@ -115,14 +111,6 @@
           }
         })
 
-        logoutButton.click(() => {
-          localStorage.removeItem("player")
-          playerName.text("")
-          logoutButton.hide()
-          game.hide()
-          playerSelectList.show()
-        })
-
         startGame.click(() => {
           startGame.hide()
           clickTarget.show()
@@ -130,13 +118,6 @@
 
           moveClickTargetToRandomPlace();
         })
-
-        if (loggedInPlayer) {
-          connection.invoke(
-            'LoginAs',
-            loggedInPlayer,
-          );
-        }
       })
 
       axios.get(`${matchboxurl}/players?api_key=secret`)
@@ -152,13 +133,32 @@
                 playerId: e.target.id,
                 externalPlayerId: e.target.innerText,
               }
-              localStorage.setItem("player", JSON.stringify(loggedInPlayer))
               logInPlayer(p)
               connection.invoke('LoginAs', loggedInPlayer)
             })
             playerSelectList.append(playerSlot)
           })
-      }))
+        }))
+
+      axios.get(`${matchboxurl}/queues?api_key=secret`)
+        .then((r => {
+          const queues = r.data
+          queues.forEach(p => {
+            const queueSlot = $('<div>')
+            queueSlot.text(`${p.name}`)
+            queueSlot.attr("id", p.queueId)
+            queueSlot.addClass('player-list-item')
+            queueSlot.click((e) => {
+              usedQueue = {
+                queueId: e.target.id,
+                name: e.target.innerText,
+              }
+              queueSelectList.hide()
+              playerSelectList.show()
+            })
+            queueSelectList.append(queueSlot)
+          })
+        }))
 
       function addPlayerToList(p) {
         const playerSlot = $('<div>')
@@ -171,6 +171,7 @@
       function logInPlayer(loggedInPlayer) {
         game.show()
         playerSelectList.hide()
+        onlinePlayerList.show()
         playerName.text(`logged in as: ${loggedInPlayer.externalPlayerId}`)
       }
 
@@ -240,9 +241,6 @@
     <div id="search-button" class="primary-button" hidden>
       Search Game
     </div>
-    <div id="logout-button" class="primary-button" hidden>
-      Logout
-    </div>
     <div id="start-game" class="primary-button" hidden>
       Start Game
     </div>
@@ -255,13 +253,16 @@
     <div id="game-found" hidden>
       <div id="game-found-header">Found Game:</div>
     </div>
-    <div id="online-player-list">
+    <div id="online-player-list" hidden>
       <div>Players online:</div>
       <div id="online-players"></div>
     </div>
   </div>
-  <div id="player-select-list">
+  <div id="player-select-list" hidden>
     <div>Select Player</div>
+  </div>
+  <div id="queue-select-list">
+    <div>Select Queue</div>
   </div>
 </body>
 </html>
