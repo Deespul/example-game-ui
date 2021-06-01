@@ -167,11 +167,12 @@
           players.forEach(p => {
             const playerSlot = $('<div>')
             playerSlot.text(`${p.externalPlayerId}`)
-            playerSlot.attr("id", p.playerId)
+            playerSlot.attr("id", "select-player-" + p.playerId)
             playerSlot.addClass('player-list-item')
             playerSlot.click((e) => {
+              const realPlayerId = e.target.id.replace("select-player-", "");
               loggedInPlayer = {
-                playerId: e.target.id,
+                playerId: realPlayerId,
                 externalPlayerId: e.target.innerText,
               }
               logInPlayer(p)
