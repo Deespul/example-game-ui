@@ -52,14 +52,14 @@
         gameResult.append(vsSlot)
 
         const winnerDiv = $('<div>')
-        const winnerTeam = result.teamsAfterMmrUpdate.find(t => t.playerIds[0] === result.winner)
-        const winnerPlayer = players.find(p => p.playerId === winnerTeam.playerIds[0])
+        const winnerTeam = result.teamsAfterMmrUpdate.find(t => t.playerIds[0].playerId === result.winner)
+        const winnerPlayer = players.find(p => p.playerId === winnerTeam.playerIds[0].playerId)
         winnerDiv.text(`Winner: ${winnerPlayer.playerId} (${Math.round(winnerTeam.mmr.rating)} MMR)`)
         gameResult.append(winnerDiv)
 
         const looserDiv = $('<div>')
-        const looserTeam = result.teamsAfterMmrUpdate.find(t => t.playerIds[0] !== result.winner)
-        const looserPlayer = players.find(p => p.playerId === looserTeam.playerIds[0])
+        const looserTeam = result.teamsAfterMmrUpdate.find(t => t.playerIds[0].playerId !== result.winner)
+        const looserPlayer = players.find(p => p.playerId === looserTeam.playerIds[0].playerId)
         looserDiv.text(`Looser: ${looserPlayer.playerId} (${Math.round(looserTeam.mmr.rating)} MMR)`)
         gameResult.append(looserDiv)
         gameResult.show()
@@ -92,7 +92,7 @@
         const player1Slot = $('<div>')
         let team1 = res.teams[0];
         let playerId1 = team1.playerIds[0];
-        const player1 = players.find(p => p.playerId === playerId1)
+        const player1 = players.find(p => p.playerId === playerId1.playerId)
         player1Slot.text(`${player1.playerId} (${Math.round(team1.mmr.rating)} MMR)`)
         gameFound.append(player1Slot)
         const vsSlot = $('<div>')
@@ -102,7 +102,7 @@
         const player2Slot = $('<div>')
         let team2 = res.teams[1];
         let playerId2 = team2.playerIds[0];
-        const player2 = players.find(p => p.playerId === playerId2)
+        const player2 = players.find(p => p.playerId === playerId2.playerId)
         player2Slot.text(`${player2.playerId} (${Math.round(team2.mmr.rating)} MMR)`)
         gameFound.append(player2Slot)
 
@@ -138,7 +138,7 @@
           moveClickTargetToRandomPlace();
           clickCounter++
 
-          if (clickCounter >= 1) {
+          if (clickCounter >= 3) {
             clickCounter = 0;
             clickTarget.hide()
 
