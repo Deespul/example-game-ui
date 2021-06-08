@@ -1,4 +1,4 @@
-import {Mmr, Player, PlayerIdentification} from "@/players/players.types";
+import {Mmr, Player} from "@/players/players.types";
 
 export interface GameState {
     onlinePlayers: Player[],
@@ -19,7 +19,8 @@ export interface MatchTeam {
 }
 
 export interface MatchPlayer {
-    playerId: PlayerIdentification,
+    playerId: string,
+    faction: string,
     teamId: string,
     mmr: Mmr,
 }

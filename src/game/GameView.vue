@@ -25,8 +25,8 @@
           <v-card-title>Found Game!</v-card-title>
           <v-container v-for="(team, index) in matchTeams" :key="team.teamId">
             <v-container v-if="index !== 0">VS</v-container>
-            <v-container v-for="player in team.players" :key="player.playerId.playerId">
-              {{ player.playerId.playerId }} ({{ player.mmr.rating }} MMR)
+            <v-container v-for="player in team.players" :key="player.playerId">
+              {{ player.playerId }} ({{ player.mmr.rating }} MMR)
             </v-container>
           </v-container>
         </v-container>
@@ -40,8 +40,8 @@
         <v-container v-for="(team, index) in teamsAfterMmrUpdate" :key="team.teamId">
           <v-container v-if="index !== 0">VS</v-container>
           <div class="win-marker mt-1 mr-3" :class="getWinner(team)"></div>
-          <v-container v-for="player in team.players" :key="player.playerId.playerId">
-            {{ player.playerId.playerId }} ({{ player.mmr.rating }} MMR)
+          <v-container v-for="player in team.players" :key="player.playerId">
+            {{ player.playerId }} ({{ player.mmr.rating }} MMR)
           </v-container>
         </v-container>
       </v-container>
