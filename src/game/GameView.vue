@@ -133,7 +133,10 @@
         const gameEnd = performance.now()
         const diff = gameEnd - this.gameStartTimer
 
-        this.connection.invoke('ReportGame', diff, this.currentMatch?.matchId ?? '')
+        this.connection.invoke('ReportGame', diff, this.currentMatch?.matchId ?? '', this.selectedPlayer?.playerId)
+
+        this.isGameStarted = false
+        this.gameStartTimer = 0
       }
     }
 
@@ -146,6 +149,9 @@
       }
     }
 
+    get selectedPlayer() {
+      return this.$store.direct.state.player.selectedPlayer
+    }
     public startGame() {
       this.isGameStarted = true
       this.clickCounter = 0;
@@ -173,6 +179,7 @@
         console.log('match finished')
         this.isGameStarted = false
         this.gameReported = true
+        this.waitingForGameEnd = false
         this.$store.direct.commit.game.SET_CURRENT_MATCH(res)
       });
 
@@ -209,7 +216,7 @@
       });
 
       this.connection.start().then(() => {
-        const player = this.$store.direct.state.player.selectedPlayer
+        const player = this.selectedPlayer
         this.connection.invoke('LoginAs', player)
       })
     }
