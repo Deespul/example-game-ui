@@ -11,12 +11,33 @@
       >
       </v-data-table>
       <div v-if="waitingForGameEnd">Waiting for opponent...</div>
-      <v-container>
-        <v-btn v-if="isLoggedIn" @click="searchForGame">
+
+      <v-container v-if="isLoggedIn && !currentMatch" >
+        <v-btn @click="searchForGame">
           <span v-if="isSearchingForOpponent">Searching game...</span>
           <span v-else>Search for Game</span>
         </v-btn>
       </v-container>
+
+      <v-container v-if="isLoggedIn && currentMatch" >
+        <v-container>
+          <v-card-title>Found Game!</v-card-title>
+          <v-container v-for="(team, index) in matchTeams" :key="team.teamId">
+            <v-container v-if="index !== 0">VS</v-container>
+            <v-container v-for="player in team.players" :key="player.playerId.playerId">
+              {{ player.playerId.playerId }} ({{ player.mmr.rating }} MMR)
+            </v-container>
+          </v-container>
+        </v-container>
+        <v-btn @click="startGame">
+          Start Game
+        </v-btn>
+      </v-container>
+
+      <v-btn v-if="isGameStarted" @click="countClick">
+        Click me
+      </v-btn>
+
     </v-card>
   </v-container>
 </template>
@@ -36,6 +57,9 @@
     waitingForGameEnd = false
     isSearchingForOpponent = false
     isLoggedIn = false
+    isGameStarted = false
+    clickCounter = 0
+    gameStartTimer = 0
     connection!: HubConnection
 
     tableHeaders = [
@@ -63,6 +87,31 @@
       return this.$store.direct.state.game.onlinePlayers
     }
 
+    get matchTeams() {
+      return this.currentMatch.teams
+    }
+
+    get currentMatch() {
+      return this.$store.direct.state.game.currentMatch
+    }
+
+    public countClick() {
+      this.clickCounter++
+      if (this.clickCounter > 3) {
+        const gameEnd = performance.now()
+        const diff = gameEnd - gameStart
+
+        this.connection.invoke('ReportGame', diff, this.currentMatch.matchId)
+      }
+    }
+
+    public startGame() {
+      this.isGameStarted = true
+      this.clickCounter = 0;
+
+      this.gameStartTimer = performance.now()
+    }
+
     created() {
       console.log(API_URL)
       this.connection = new HubConnectionBuilder()
@@ -79,6 +128,7 @@
 
       this.connection.on('MatchFinished', (result: Match) => {
         console.log('match finished')
+        this.isGameStarted = false
         // searchButton.show()
         // gameResult.empty();
         // onlinePlayerList.show();
@@ -104,7 +154,8 @@
 
       this.connection.on('PartialResultReported', () => {
         console.log('match partially reported')
-        this.waitingForGameEnd = false
+        this.waitingForGameEnd = true
+        this.isGameStarted = false
       });
 
       this.connection.on('MatchReportFailed', () => {
