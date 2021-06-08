@@ -14,7 +14,7 @@
       <v-container>
         <v-btn v-if="isLoggedIn" @click="searchForGame">
           <span v-if="isSearchingForOpponent">Searching game...</span>
-          <span>Search for Game</span>
+          <span v-else>Search for Game</span>
         </v-btn>
       </v-container>
     </v-card>
