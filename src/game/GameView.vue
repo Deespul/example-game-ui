@@ -35,6 +35,17 @@
         </v-btn>
       </v-container>
 
+      <v-container v-if="gameReported">
+        <v-card-title>Game finished!</v-card-title>
+        <v-container v-for="(team, index) in teamsAfterMmrUpdate" :key="team.teamId">
+          <v-container v-if="index !== 0">VS</v-container>
+          <div class="win-marker mt-1 mr-3" :class="getWinner(team)"></div>
+          <v-container v-for="player in team.players" :key="player.playerId.playerId">
+            {{ player.playerId.playerId }} ({{ player.mmr.rating }} MMR)
+          </v-container>
+        </v-container>
+      </v-container>
+
       <v-btn class="click-button" :style="[randomLocation]" v-if="isGameStarted" @click="countClick">
         Click me
       </v-btn>
@@ -47,7 +58,7 @@
   import Vue from 'vue'
   import {Component} from "vue-property-decorator";
   import {API_URL} from "@/main";
-  import {Match} from "@/game/game.types";
+  import {Match, MatchTeam} from "@/game/game.types";
   import {Player} from "@/players/players.types";
   import {HubConnection, HubConnectionBuilder} from "@microsoft/signalr";
 
@@ -91,12 +102,24 @@
       )
     }
 
+    public getWinner(team: MatchTeam) {
+      if (team.teamId === this.currentMatch?.winner) {
+        return "won"
+      } else {
+        return "lost"
+      }
+    }
+
     get playersOnline() {
       return this.$store.direct.state.game.onlinePlayers
     }
 
     get matchTeams() {
       return this.currentMatch?.teams ?? []
+    }
+
+    get teamsAfterMmrUpdate() {
+      return this.currentMatch?.teamsAfterMmrUpdate ?? []
     }
 
     get currentMatch() {
@@ -151,27 +174,6 @@
         this.isGameStarted = false
         this.gameReported = true
         this.$store.direct.commit.game.SET_CURRENT_MATCH(res)
-        // searchButton.show()
-        // gameResult.empty();
-        // onlinePlayerList.show();
-        // waitingForGameEnd.hide()
-        //
-        // const vsSlot = $('<div>')
-        // vsSlot.text("Game Result:")
-        // gameResult.append(vsSlot)
-        //
-        // const winnerDiv = $('<div>')
-        // const winnerTeam = result.teamsAfterMmrUpdate.find(t => t.playerIds[0].playerId === result.winner)
-        // const winnerPlayer = players.find(p => p.playerId === winnerTeam.playerIds[0].playerId)
-        // winnerDiv.text(`Winner: ${winnerPlayer.playerId} (${Math.round(winnerTeam.mmr.rating)} MMR)`)
-        // gameResult.append(winnerDiv)
-        //
-        // const looserDiv = $('<div>')
-        // const looserTeam = result.teamsAfterMmrUpdate.find(t => t.playerIds[0].playerId !== result.winner)
-        // const looserPlayer = players.find(p => p.playerId === looserTeam.playerIds[0].playerId)
-        // looserDiv.text(`Looser: ${looserPlayer.playerId} (${Math.round(looserTeam.mmr.rating)} MMR)`)
-        // gameResult.append(looserDiv)
-        // gameResult.show()
       });
 
       this.connection.on('PartialResultReported', () => {
@@ -223,5 +225,16 @@
   .click-button {
     position: absolute !important;
     z-index: 5000;
+  }
+  .win-marker {
+    border-radius: 5px;
+    width: 10px;
+    height: 10px;
+  }
+  .won {
+    background-color: green;
+  }
+  .lost {
+    background-color: red;
   }
 </style>
