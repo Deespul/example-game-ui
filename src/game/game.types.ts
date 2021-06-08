@@ -21,5 +21,5 @@ export interface MatchTeam {
 export interface MatchPlayer {
     playerId: PlayerIdentification,
     teamId: string,
-    Mmr: Mmr,
+    mmr: Mmr,
 }
