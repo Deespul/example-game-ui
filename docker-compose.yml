@@ -1,17 +1,16 @@
 version: '3.8'
 services:
-  example-game-ui:
-    image: deespul/example-game-ui:${TAG}
-    container_name: matchbox-example-game-ui
+  match-box-admin-ui:
+    image: deespul/match-box-admin-ui:${TAG}
+    container_name: matchbox-admin-ui-${CONTAINER_SUFFIX}
     restart: always
     expose:
       - 80
     environment:
-      - VIRTUAL_HOST=demo.matchbox.gg
-      - LETSENCRYPT_HOST=demo.matchbox.gg
+      - VIRTUAL_HOST=admin.test.matchbox.gg
+      - LETSENCRYPT_HOST=admin.test.matchbox.gg
       - LETSENCRYPT_EMAIL=simonheiss87@gmail.com
-      - API_URL=${API_URL}
-      - MATCHBOX_API=${MATCHBOX_API}
+      - HOST_URL=${HOST_URL}
 
 networks:
   default:

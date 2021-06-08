@@ -2,7 +2,7 @@
 
 rm ./env.js
 
-echo "const config = {" >> ./env.js
-echo "  API_URL: \"${1}\","  >> ./env.js
-echo "  MATCHBOX_API: \"${2}\""  >> ./env.js
+echo "window._env_ = {" >> ./env.js
+echo "  API_URL: \"https://example-backend.${1}/\","  >> ./env.js
+echo "  MATCHBOX_API: \"https://api.${1}/\""  >> ./env.js
 echo "};" >> ./env.js

@@ -1,36 +1,49 @@
 name: $(Build.BuildID)
 
-pool:
-  vmImage: 'ubuntu-20.04'
+trigger:
+  - master
+pr:
+  - master
 
-variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
+pool:
+  vmImage: "ubuntu-20.04"
 
 steps:
+  - task: PowerShell@2
+    displayName: set docker and pipeline tag
+    inputs:
+      targetType: "inline"
+      script: |
+        if(!("$(Build.Reason)".Equals("PullRequest"))){
+          Write-Host "##vso[task.setvariable variable=TAG]$(Build.BuildID)"
+          Write-Host "##vso[task.setvariable variable=IS_LATEST]latest"
+          Write-Host "Masterversion: $(Build.BuildID)"
+        } else {
+          Write-Host "##vso[task.setvariable variable=TAG]dev-$(System.PullRequest.PullRequestNumber)"
+          Write-Host "##vso[task.setvariable variable=IS_LATEST]"
+          Write-Host "PR-Version: dev-$(System.PullRequest.PullRequestNumber)"
+        }
 
-- task: Docker@2
-  displayName: 'build and push to deespul Repo'
-  inputs:
-    containerRegistry: 'DockerHub'
-    repository: 'deespul/example-game-ui'
-    command: 'buildAndPush'
-    Dockerfile: '**/Dockerfile'
-    buildContext: '.'
-    tags: |
-      $(Build.BuildId)
-      latest
+  - task: Docker@2
+    inputs:
+      containerRegistry: "DockerHub"
+      repository: "deespul/example-game-ui"
+      command: "buildAndPush"
+      Dockerfile: "**/Dockerfile"
+      buildContext: "."
+      tags: |
+        $(TAG)
+        $(IS_LATEST)
 
-- task: CopyFiles@2
-  inputs:
-    Contents: '**/*docker-compose.yml'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    OverWrite: true
-    flattenFolders: true
+  - task: CopyFiles@2
+    inputs:
+      Contents: '**/*docker-compose.yml'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      OverWrite: true
+      flattenFolders: true
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'drop'
-    publishLocation: 'Container'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'drop'
+      publishLocation: 'Container'
