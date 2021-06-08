@@ -20,7 +20,7 @@
         </v-btn>
       </v-container>
 
-      <v-container v-if="isLoggedIn && currentMatch && !isGameStarted && !waitingForGameEnd" >
+      <v-container v-if="isLoggedIn && currentMatch && !isGameStarted && !waitingForGameEnd && !matchResult" >
         <v-container>
           <v-card-title>Found Game!</v-card-title>
           <v-container v-for="(team, index) in matchTeams" :key="team.teamId">
@@ -35,7 +35,7 @@
         </v-btn>
       </v-container>
 
-      <v-container v-if="gameReported">
+      <v-container v-if="matchResult">
         <v-card-title>Game finished!</v-card-title>
         <v-container v-for="(team, index) in teamsAfterMmrUpdate" :key="team.teamId">
           <v-container v-if="index !== 0">VS</v-container>
@@ -70,7 +70,6 @@
     isSearchingForOpponent = false
     isLoggedIn = false
     isGameStarted = false
-    gameReported = false
     clickCounter = 0
     gameStartTimer = 0
     connection!: HubConnection
@@ -91,7 +90,6 @@
     public searchForGame() {
       const queueId = this.$store.direct.state.queue.selectedQueue?.queueId
       const playerId = this.$store.direct.state.player.selectedPlayer?.playerId
-      this.gameReported = false
       this.$store.direct.commit.game.SET_CURRENT_MATCH(null)
       this.connection.invoke(
           'Enqueue',
@@ -108,6 +106,10 @@
       } else {
         return "lost"
       }
+    }
+
+    get matchResult() {
+      return this.$store.direct.state.game.matchResult
     }
 
     get playersOnline() {
@@ -154,6 +156,7 @@
     }
     public startGame() {
       this.isGameStarted = true
+      this.$store.direct.commit.game.SET_MATCH_RESULT(null)
       this.clickCounter = 0;
 
       this.moveClickButton()
@@ -178,9 +181,9 @@
       this.connection.on('MatchFinished', (res: Match) => {
         console.log('match finished')
         this.isGameStarted = false
-        this.gameReported = true
         this.waitingForGameEnd = false
-        this.$store.direct.commit.game.SET_CURRENT_MATCH(res)
+        this.$store.direct.commit.game.SET_MATCH_RESULT(res)
+        this.$store.direct.commit.game.SET_CURRENT_MATCH(null)
       });
 
       this.connection.on('PartialResultReported', () => {

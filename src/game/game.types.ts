@@ -3,6 +3,7 @@ import {Mmr, Player} from "@/players/players.types";
 export interface GameState {
     onlinePlayers: Player[],
     currentMatch: Match | null,
+    matchResult: Match | null,
 }
 
 export interface Match {
