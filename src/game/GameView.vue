@@ -96,7 +96,7 @@
     }
 
     get matchTeams() {
-      return this.currentMatch.teams
+      return this.currentMatch?.teams ?? []
     }
 
     get currentMatch() {
@@ -110,7 +110,7 @@
         const gameEnd = performance.now()
         const diff = gameEnd - this.gameStartTimer
 
-        this.connection.invoke('ReportGame', diff, this.currentMatch.matchId)
+        this.connection.invoke('ReportGame', diff, this.currentMatch?.matchId ?? '')
       }
     }
 
