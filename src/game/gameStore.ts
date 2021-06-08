@@ -1,11 +1,14 @@
 import { ActionContext } from "vuex";
 import {RootState} from "@/store/rootState";
 import {moduleActionContext} from "@/store/store";
-import {GameState} from "@/game/game.types";
+import {GameState, Match} from "@/game/game.types";
+import {Player} from "@/players/players.types";
 
 const mod = {
     namespaced: true,
     state: {
+      onlinePlayers: [],
+      currentMatch: null
     } as GameState,
     actions: {
         async loadStuff(
@@ -15,6 +18,19 @@ const mod = {
         },
     },
     mutations: {
+        FOUND_MATCH(state: GameState, currentMatch: Match) {
+            state.currentMatch = currentMatch;
+        },
+        SET_PLAYERS_ONLINE(state: GameState, playersOnline: Player[]) {
+            state.onlinePlayers = playersOnline;
+        },
+        ADD_ONLINE_PLAYER(state: GameState, player: Player) {
+            const cleanPlayers = [...state.onlinePlayers.filter(p => p.playerId !== player.playerId)]
+            state.onlinePlayers = [...cleanPlayers, player];
+        },
+        REMOVE_ONLINE_PLAYER(state: GameState, player: Player) {
+            state.onlinePlayers = [...state.onlinePlayers.filter(p => p.playerId !== player.playerId)];
+        },
     },
 } as const;
 

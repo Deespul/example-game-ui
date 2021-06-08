@@ -4,6 +4,7 @@
       <v-col cols="12">
         <QueueListView v-if="!queueIsSelected"/>
         <PlayerListView v-else-if="!playerIsSelected"/>
+        <GameView v-else/>
       </v-col>
     </v-row>
   </v-container>
@@ -13,9 +14,10 @@
 import {Component, Vue} from 'vue-property-decorator';
 import QueueListView from "@/queues/QueueListView.vue";
 import PlayerListView from "@/players/PlayerListView.vue";
+import GameView from "@/game/GameView.vue";
 
 @Component({
-  components: {PlayerListView, QueueListView}
+  components: {GameView, PlayerListView, QueueListView}
 })
 export default class HomeView extends Vue {
   get playerIsSelected() {

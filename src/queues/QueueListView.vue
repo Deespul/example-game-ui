@@ -3,7 +3,6 @@
     <v-card>
       <v-card-title>
         Queues
-        <v-spacer></v-spacer>
       </v-card-title>
       <v-data-table
         class="row-pointer"
