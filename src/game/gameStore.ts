@@ -18,7 +18,7 @@ const mod = {
         },
     },
     mutations: {
-        FOUND_MATCH(state: GameState, currentMatch: Match) {
+        SET_CURRENT_MATCH(state: GameState, currentMatch: Match | null) {
             state.currentMatch = currentMatch;
         },
         SET_PLAYERS_ONLINE(state: GameState, playersOnline: Player[]) {

@@ -1,10 +1,11 @@
 <template>
   <v-container>
     <v-card>
-      <v-card-title>
+      <v-card-title v-if="!isGameStarted">
         Players online
       </v-card-title>
       <v-data-table
+        v-if="!isGameStarted"
         :headers="tableHeaders"
         :items="playersOnline"
         :loading="!isLoggedIn"
@@ -12,14 +13,14 @@
       </v-data-table>
       <div v-if="waitingForGameEnd">Waiting for opponent...</div>
 
-      <v-container v-if="isLoggedIn && !currentMatch" >
+      <v-container v-if="isLoggedIn && !currentMatch && !isGameStarted" >
         <v-btn @click="searchForGame">
           <span v-if="isSearchingForOpponent">Searching game...</span>
           <span v-else>Search for Game</span>
         </v-btn>
       </v-container>
 
-      <v-container v-if="isLoggedIn && currentMatch" >
+      <v-container v-if="isLoggedIn && currentMatch && !isGameStarted && !waitingForGameEnd" >
         <v-container>
           <v-card-title>Found Game!</v-card-title>
           <v-container v-for="(team, index) in matchTeams" :key="team.teamId">
@@ -34,7 +35,7 @@
         </v-btn>
       </v-container>
 
-      <v-btn v-if="isGameStarted" @click="countClick">
+      <v-btn class="click-button" :style="[randomLocation]" v-if="isGameStarted" @click="countClick">
         Click me
       </v-btn>
 
@@ -58,9 +59,14 @@
     isSearchingForOpponent = false
     isLoggedIn = false
     isGameStarted = false
+    gameReported = false
     clickCounter = 0
     gameStartTimer = 0
     connection!: HubConnection
+    randomLocation = {
+      left: "500px",
+      top: "400px"
+    }
 
     tableHeaders = [
       {
@@ -74,6 +80,8 @@
     public searchForGame() {
       const queueId = this.$store.direct.state.queue.selectedQueue?.queueId
       const playerId = this.$store.direct.state.player.selectedPlayer?.playerId
+      this.gameReported = false
+      this.$store.direct.commit.game.SET_CURRENT_MATCH(null)
       this.connection.invoke(
           'Enqueue',
           {
@@ -97,17 +105,29 @@
 
     public countClick() {
       this.clickCounter++
-      if (this.clickCounter > 3) {
+      this.moveClickButton()
+      if (this.clickCounter >= 3) {
         const gameEnd = performance.now()
-        const diff = gameEnd - gameStart
+        const diff = gameEnd - this.gameStartTimer
 
         this.connection.invoke('ReportGame', diff, this.currentMatch.matchId)
+      }
+    }
+
+    public moveClickButton() {
+      const width = window.innerWidth - 200
+      const height = window.innerHeight - 160
+      this.randomLocation = {
+        left: `${Math.random() * width}px`,
+        top: `${Math.random() * height}px`
       }
     }
 
     public startGame() {
       this.isGameStarted = true
       this.clickCounter = 0;
+
+      this.moveClickButton()
 
       this.gameStartTimer = performance.now()
     }
@@ -126,9 +146,11 @@
         this.$store.direct.commit.game.REMOVE_ONLINE_PLAYER(player)
       })
 
-      this.connection.on('MatchFinished', (result: Match) => {
+      this.connection.on('MatchFinished', (res: Match) => {
         console.log('match finished')
         this.isGameStarted = false
+        this.gameReported = true
+        this.$store.direct.commit.game.SET_CURRENT_MATCH(res)
         // searchButton.show()
         // gameResult.empty();
         // onlinePlayerList.show();
@@ -155,7 +177,6 @@
       this.connection.on('PartialResultReported', () => {
         console.log('match partially reported')
         this.waitingForGameEnd = true
-        this.isGameStarted = false
       });
 
       this.connection.on('MatchReportFailed', () => {
@@ -177,31 +198,7 @@
 
       this.connection.on('MatchFound', (res: Match) => {
         console.log('match found')
-        this.$store.direct.commit.game.FOUND_MATCH(res)
-        //
-        // matchId = res.matchId
-        //
-        // const player1Slot = $('<div>')
-        // let team1 = res.teams[0];
-        // let playerId1 = team1.playerIds[0];
-        // const player1 = players.find(p => p.playerId === playerId1.playerId)
-        // player1Slot.text(`${player1.playerId} (${Math.round(team1.mmr.rating)} MMR)`)
-        // gameFound.append(player1Slot)
-        // const vsSlot = $('<div>')
-        // vsSlot.text("VS")
-        // gameFound.append(vsSlot)
-        //
-        // const player2Slot = $('<div>')
-        // let team2 = res.teams[1];
-        // let playerId2 = team2.playerIds[0];
-        // const player2 = players.find(p => p.playerId === playerId2.playerId)
-        // player2Slot.text(`${player2.playerId} (${Math.round(team2.mmr.rating)} MMR)`)
-        // gameFound.append(player2Slot)
-        //
-        // gameFound.show()
-        // startGameButton.show()
-        // onlinePlayerList.hide()
-        // searchField.hide()
+        this.$store.direct.commit.game.SET_CURRENT_MATCH(res)
       });
 
       this.connection.on('LoggedIn', (res: any) => {
@@ -222,3 +219,9 @@
     }
   }
 </script>
+<style>
+  .click-button {
+    position: absolute !important;
+    z-index: 5000;
+  }
+</style>
