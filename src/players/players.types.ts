@@ -20,7 +20,7 @@ export interface Team {
     mmr: Mmr,
     queueId: string,
     teamId: string,
-    playerIds: PlayerIdentification[]
+    players: PlayerIdentification[]
 }
 
 export interface Mmr {
