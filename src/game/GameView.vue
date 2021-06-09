@@ -101,7 +101,7 @@
     }
 
     public getWinner(team: MatchTeam) {
-      if (team.teamId === this.currentMatch?.winner) {
+      if (team.teamId === this.matchResult?.winner) {
         return "won"
       } else {
         return "lost"
