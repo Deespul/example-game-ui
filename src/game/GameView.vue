@@ -121,7 +121,7 @@
     }
 
     get teamsAfterMmrUpdate() {
-      return this.currentMatch?.teamsAfterMmrUpdate ?? []
+      return this.matchResult?.teamsAfterMmrUpdate ?? []
     }
 
     get currentMatch() {
