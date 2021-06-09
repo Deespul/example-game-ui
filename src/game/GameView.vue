@@ -95,7 +95,7 @@
           'Enqueue',
           {
             queueId: queueId,
-            playerIds: [{playerId: playerId}]
+            players: [{playerId: playerId}]
           },
       )
     }
