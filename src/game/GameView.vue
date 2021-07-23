@@ -143,8 +143,8 @@
     }
 
     public moveClickButton() {
-      const width = window.innerWidth - 200
-      const height = window.innerHeight - 160
+      const width = window.innerWidth - 300
+      const height = window.innerHeight - 260
       this.randomLocation = {
         left: `${Math.random() * width}px`,
         top: `${Math.random() * height}px`
